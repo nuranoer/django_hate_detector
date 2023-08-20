@@ -5,6 +5,7 @@
     <title>Hate and Emotion Detector</title>
     <link rel="stylesheet" type="text/css" href="{% static 'detector/style.css' %}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css">
 </head>
 <style>
     .header-top {
@@ -125,33 +126,87 @@
             </div>
         </div>
     </div>
-            <div class="heading-title">
-                <h6 class="mt-2">Aplikasi ini akan mendeteksi sentiment dan emosi dari tweet Anda.
-                    <br>Jika tweet Anda mengandung ujaran kebencian dan emosi, 
-                    <br>maka aplikasi pengguna akan mendeteksinya.
-                </h6>
-            </div>
-
-            <form method="post" action="">
-                {% csrf_token %}
-                <div class="form-group">
-                    <label for="tweet" style="font-size: 15px;" class="text-right"><strong>Periksa Tweet Anda Disini:</strong></label>
-                    <input type="text" class="form-control mx-auto" name="tweet" id="tweet">
-                </div>
-                <div class="mt-3">
-                    <button type="submit" name="detect_emotion_sentiment" value="Detect" class="btn btn-secondary" data-toggle="modal" data-target="#hasilDeteksiModal">Check</button>
-                </div>
-            </form>
-            <h6 class="mt-1">Tampilkan Hasil: 1) Tweet Anda mengandung ujaran kebencian dan emosi marah.
-                <br>Tidak direkomendasikan  untuk di posting atau 2) Tweet Anda tidak mengandung
-                <br>ujaran kebencian dan emosi. Silahkan post tweet Anda.
-            </h6>
-
-        </div>
+    
+    <div class="heading-title">
+        <h6 class="mt-2">Aplikasi ini akan mendeteksi sentiment dan emosi dari tweet Anda.
+            <br>Jika tweet Anda mengandung ujaran kebencian dan emosi, 
+            <br>maka aplikasi pengguna akan mendeteksinya.
+        </h6>
     </div>
 
+    <form method="post" action="">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="tweet" style="font-size: 15px;" class="text-right"><strong>Periksa Tweet Anda Disini:</strong></label>
+            <input type="text" class="form-control mx-auto" name="tweet" id="tweet">
+        </div>
+        <div class="mt-3">
+            <button type="submit" name="detect_emotion_sentiment" value="Detect" class="btn btn-secondary" data-toggle="modal" data-target="#hasilDeteksiModal" id="submitButton">Check</button>
+        </div>
+    </form>
+    <h6 class="mt-1">Tampilkan Hasil: 1) Tweet Anda mengandung ujaran kebencian dan emosi marah.
+        <br>Tidak direkomendasikan  untuk di posting atau 2) Tweet Anda tidak mengandung
+        <br>ujaran kebencian dan emosi. Silahkan post tweet Anda.
+    </h6>
+
     {% if detected_emotion or detected_sentiment %}
-    <div class="modal show" id="hasilDeteksiModal" tabindex="-1" role="dialog" aria-labelledby="hasilDeteksiModalLabel" aria-hidden="true">
+        {% if detected_sentiment == "Positive" or detected_sentiment == "Neutral" %}
+        <div class="toast-container position-fixed top-50 start-50 translate-middle p-3">
+            <div id="liveToast" class="toast show text-bg-success" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="toast-header">
+                    <img src="{% static 'assets/image/bggg.png' %}" class="rounded me-2" width="20" alt="Logo X">
+                    <strong class="me-auto">Hasil Deteksi</strong>
+                    <button type="button" class="btn-close" id="closeToastButton"></button>
+                </div>
+                <div class="toast-body">
+                    {% if detected_emotion %}
+                    <h5>Tweet Anda:</h5>
+                    <p>{{ tweet }}</p>
+                    <h5>Hasil Deteksi Emosi:</h5>
+                    <p>{{ detected_emotion }}</p>
+                    {% endif %}
+                    {% if detected_sentiment %}
+                    <h5>Hasil Deteksi Sentimen:</h5>
+                    <p>{{ detected_sentiment }}</p>
+                    {% endif %}
+
+                    
+                    <form method="post" action="{% url 'post_to_twitter' %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="tweet" value="{{ tweet }}">
+                        <button type="submit" class="btn btn-primary">Post ke Twitter</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        {% else %}
+        <div class="toast-container position-fixed top-50 start-50 translate-middle p-3">
+            <div id="liveToast" class="toast show text-bg-danger" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="toast-header">
+                    <img src="{% static 'assets/image/bggg.png' %}" class="rounded me-2" width="20" alt="Logo X">
+                    <strong class="me-auto">Hasil Deteksi</strong>
+                    <button type="button" class="btn-close" id="closeToastButton"></button>
+                </div>
+                <div class="toast-body">
+                    {% if detected_emotion %}
+                    <h5>Tweet Anda:</h5>
+                    <p>{{ tweet }}</p>
+                    <h5>Hasil Deteksi Emosi:</h5>
+                    <p>{{ detected_emotion }}</p>
+                    {% endif %}
+                    {% if detected_sentiment %}
+                    <h5>Hasil Deteksi Sentimen:</h5>
+                    <p>{{ detected_sentiment }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        {% endif %}
+    {% endif %}
+    
+    <!-- <div class="modal" id="hasilDeteksiModal" tabindex="-1" role="dialog" aria-labelledby="hasilDeteksiModalLabel" aria-hidden="true">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
@@ -188,15 +243,36 @@
                 </div>
             </div>
         </div>
-    </div>
-
-    <script>
+    </div> -->
+    
+    <!-- <script>
         $(document).ready(function () {
             $('#hasilDeteksiModal').modal('show');
         });
+    </script> -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var toast = document.getElementById("liveToast");
+            if (toast) {
+                setTimeout(function () {
+                    toast.remove(); // Hide the toast after 5 seconds
+                }, 5000); // 5000 milliseconds = 5 seconds
+            }
+        });
     </script>
-    {% endif %}      
-        
+    
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var closeToastButton = document.getElementById("closeToastButton");
+            var toast = document.getElementById("liveToast");
+    
+            if (closeToastButton && toast) {
+                closeToastButton.addEventListener("click", function () {
+                    toast.remove(); // Hide the toast when the button is clicked
+                });
+            }
+        });
+    </script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha384-Ku72qj3KHw+LqWuX86PLevgsbKvk6GG3ET+XZjw3aIQNEDJSu4W8/XGRbckCY1r3" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-cVKIPhGWiC2Al4u+LWgxfKTRIcfu0JTxR+EQDz/bgldoEyl4H0zUF0QKbrJ0EcQF" crossorigin="anonymous"></script>
 
