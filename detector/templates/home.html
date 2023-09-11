@@ -1,11 +1,14 @@
 {% load static %}
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hate and Emotion Detector</title>
-    <link rel="stylesheet" type="text/css" href="{% static 'detector/style.css' %}">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link rel="stylesheet" href="{% static 'detector/style.css' %}">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" integrity="sha384-pzjw8f+ua9I5C5Mu6Uz9nssT08A6pTj2I6L1zLKLBBfF5D5C5/Kw6vx3J+FS5Kzma" crossorigin="anonymous">
+
 </head>
 <style>
     .header-top {
@@ -93,6 +96,7 @@
     .mt-4 {
         position: relative;
         right: 400px;
+        color: white;
     }
     .mt-1 {
         position: relative;
@@ -103,23 +107,23 @@
         position: center;
     }
 </style>
+
 <body>
-    <div class="heading-container">
+    <div class="header-top">
         <div class="container" style="margin-top: 20px;">
             <div class="logo-container">
                 <img src="{% static 'assets/image/logo.png' %}" alt="Logo" width="50%">
             </div>
-
             <h1 class="mt-4"><strong>Hate Speech <br>and Emotion Detector</strong></h1>
             <div class="content-container">
                 <div class="language-container">
                     <div class="btn-group">
                         <button type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                        Pilih Bahasa :
+                            Pilih Bahasa :
                         </button>
-                        <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="#">Indonesia</a></li>
-                        <li><a class="dropdown-item" href="#">Inggris</a></li>
+                        <ul class="dropdown-menu" id="languageDropdown">
+                            <li><a class="dropdown-item" href="#" data-lang="id">Indonesia</a></li>
+                            <li><a class="dropdown-item" href="#" data-lang="en">English</a></li>
                         </ul>
                     </div>        
                 </div>
@@ -128,7 +132,7 @@
     </div>
     
     <div class="heading-title">
-        <h6 class="mt-2">Aplikasi ini akan mendeteksi sentiment dan emosi dari tweet Anda.
+        <h6 class="mt-2" id="headingText">Aplikasi ini akan mendeteksi sentiment dan emosi dari tweet Anda.
             <br>Jika tweet Anda mengandung ujaran kebencian dan emosi, 
             <br>maka aplikasi pengguna akan mendeteksinya.
         </h6>
@@ -137,14 +141,14 @@
     <form method="post" action="">
         {% csrf_token %}
         <div class="form-group">
-            <label for="tweet" style="font-size: 15px;" class="text-right"><strong>Periksa Tweet Anda Disini:</strong></label>
+            <label for="tweet" style="font-size: 15px;" id="fieldText"><strong>Periksa Tweet Anda Disini:</strong></label>
             <input type="text" class="form-control mx-auto" name="tweet" id="tweet">
         </div>
         <div class="mt-3">
-            <button type="submit" name="detect_emotion_sentiment" value="Detect" class="btn btn-secondary" data-toggle="modal" data-target="#hasilDeteksiModal" id="submitButton">Check</button>
+            <button type="submit" name="detect_emotion_sentiment" value="Detect" class="btn btn-secondary">Check</button>
         </div>
     </form>
-    <h6 class="mt-1">Tampilkan Hasil: 1) Tweet Anda mengandung ujaran kebencian dan emosi marah.
+    <h6 class="mt-1" id="resultText">Tampilkan Hasil: 1) Tweet Anda mengandung ujaran kebencian dan emosi marah.
         <br>Tidak direkomendasikan  untuk di posting atau 2) Tweet Anda tidak mengandung
         <br>ujaran kebencian dan emosi. Silahkan post tweet Anda.
     </h6>
@@ -152,10 +156,10 @@
     {% if detected_emotion or detected_sentiment %}
         {% if detected_sentiment == "Positive" or detected_sentiment == "Neutral" %}
         <div class="toast-container position-fixed top-50 start-50 translate-middle p-3">
-            <div id="liveToast" class="toast show text-bg-success" role="alert" aria-live="assertive" aria-atomic="true">
+            <div id="liveToast" class="toast show text-bg-secondary" role="alert" aria-live="assertive" aria-atomic="true">
                 <div class="toast-header">
                     <img src="{% static 'assets/image/bggg.png' %}" class="rounded me-2" width="20" alt="Logo X">
-                    <strong class="me-auto">Hasil Deteksi</strong>
+                    <strong class="me-auto" id="hasil">Hasil Deteksi</strong>
                     <button type="button" class="btn-close" id="closeToastButton"></button>
                 </div>
                 <div class="toast-body">
@@ -169,13 +173,13 @@
                     <h5>Hasil Deteksi Sentimen:</h5>
                     <p>{{ detected_sentiment }}</p>
                     {% endif %}
-
                     
                     <form method="post" action="{% url 'post_to_twitter' %}">
                         {% csrf_token %}
                         <input type="hidden" name="tweet" value="{{ tweet }}">
-                        <button type="submit" class="btn btn-primary">Post ke Twitter</button>
-                    </form>
+                        <!-- Add an ID to your "Post ke Twitter" button for modal triggering -->
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#twitterModal">Post ke Twitter</button>
+                    </form>                
                 </div>
             </div>
         </div>
@@ -206,57 +210,76 @@
         {% endif %}
     {% endif %}
     
-    <!-- <div class="modal" id="hasilDeteksiModal" tabindex="-1" role="dialog" aria-labelledby="hasilDeteksiModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
+    <!-- Modal for Twitter credentials -->
+    <div class="modal fade" id="twitterModal" tabindex="-1" aria-labelledby="twitterModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="hasilDeteksiModalLabel">Hasil Deteksi</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                    <h5 class="modal-title" id="twitterModalLabel">Masukkan Username dan Password Twitter Anda</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    {% if detected_emotion %}
-                    <div class="mt-3">
-                        <h5>Hasil Deteksi Emosi:</h5>
-                        <p>{{ detected_emotion }}</p>
-                    </div>
-                    {% endif %}
-                    {% if detected_sentiment %}
-                    <div class="mt-3">
-                        <h5>Hasil Deteksi Sentimen:</h5>
-                        <p>{{ detected_sentiment }}</p>
-                    </div>
-                    {% endif %}
+                    <form id="twitterForm">
+                        <input type="hidden" name="twitter_value" id="twitter_value" value="{{ tweet }}">
+                        <div class="mb-3">
+                            <label for="twitterUsername" class="form-label">Username</label>
+                            <input type="text" class="form-control" name="twitter_username" id="twitter_username" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="twitterPassword" class="form-label">Password</label>
+                            <div class="input-group">
+                                <input type="password" class="form-control" name="twitter_password" id="twitter_password" required>
+                                <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                    <i class="fas fa-eye" id="passwordIcon"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
                 </div>
                 <div class="modal-footer">
-                    {% if detected_sentiment == "Positive" or detected_sentiment == "Neutral" %}
-                    <form method="post" action="{% url 'post_to_twitter' %}">
-                        {% csrf_token %}
-                        <input type="hidden" name="tweet" value="{{ tweet }}">
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
-                        <button type="submit" class="btn btn-primary">Post ke Twitter</button>
-                    </form>
-                    {% else %}
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
-                    {% endif %}
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary" id="submitTwitterButton">Post</button>
                 </div>
             </div>
         </div>
-    </div> -->
+    </div>
+
+    <!-- Toast for Twitter response -->
+    <div class="toast-container position-fixed top-0 end-0 p-3">
+        <div id="twitterToast" class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <strong class="me-auto">Twitter Response</strong>
+                <button type="button" class="btn-close" id="closeTwitterToast"></button>
+            </div>
+            <div class="toast-body">
+                <p id="twitterResponseMessage"></p>
+            </div>
+        </div>
+    </div>
     
-    <!-- <script>
-        $(document).ready(function () {
-            $('#hasilDeteksiModal').modal('show');
-        });
-    </script> -->
+
+    <script src="{% static 'assets/js/lib/jquery.min.js' %}"></script>
+    <script src="{% static 'assets/js/lib/bootstrap.min.js' %}"></script>
+    <script src="{% static 'assets/js/scripts.js' %}"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.min.js" integrity="sha384-Rx+T1VzGupg4BHQYs2gCW9It+akI2MM/mndMCy36UVfodzcJcF0GGLxZIzObiEfa" crossorigin="anonymous"></script>
+    
+
     <script>
         document.addEventListener("DOMContentLoaded", function () {
             var toast = document.getElementById("liveToast");
-            if (toast) {
+
+            var tweet = document.getElementById("tweet").value;
+            // Simpan tweet di variabel pendingTweet
+            pendingTweet = tweet;
+
+
+            if (toast && !localStorage.getItem("toastShown")) {
+                localStorage.setItem("toastShown", "true");
                 setTimeout(function () {
-                    toast.remove(); // Hide the toast after 5 seconds
-                }, 5000); // 5000 milliseconds = 5 seconds
+                    toast.remove(); // Menghapus toast setelah 1 jam
+                }, 3600000); 
             }
         });
     </script>
@@ -268,13 +291,202 @@
     
             if (closeToastButton && toast) {
                 closeToastButton.addEventListener("click", function () {
+                    // Setelah menyembunyikan toast, simpan tweet di variabel
+                    var tweet = document.getElementById("tweet").value;
+                    // Simpan tweet di variabel pendingTweet
+                    pendingTweet = tweet;
                     toast.remove(); // Hide the toast when the button is clicked
                 });
             }
         });
     </script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha384-Ku72qj3KHw+LqWuX86PLevgsbKvk6GG3ET+XZjw3aIQNEDJSu4W8/XGRbckCY1r3" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-cVKIPhGWiC2Al4u+LWgxfKTRIcfu0JTxR+EQDz/bgldoEyl4H0zUF0QKbrJ0EcQF" crossorigin="anonymous"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var twitterToast = document.getElementById("twitterToast");
+            var closeTwitterToastButton = document.getElementById("closeTwitterToast");
 
+    
+            if (closeTwitterToastButton && twitterToast) {
+                closeTwitterToastButton.addEventListener("click", function () {
+                    twitterToast.style.display = "none"; // Sembunyikan toast saat tombol ditutup
+                });
+            }
+        });
+    
+        // Fungsi untuk menampilkan toast
+        function showToast(message) {
+            var twitterToast = document.getElementById("twitterToast");
+            var twitterResponseMessage = document.getElementById("twitterResponseMessage");
+    
+            twitterResponseMessage.textContent = message;
+            twitterToast.style.display = "block"; // Tampilkan toast
+            localStorage.setItem("toastShown", "true"); 
+        }
+
+    </script>
+    
+    
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var twitterModal = new bootstrap.Modal(document.getElementById("twitterModal"));
+    
+            var openTwitterModalButton = document.querySelector("[data-bs-target='#twitterModal']");
+            var submitTwitterButton = document.getElementById("submitTwitterButton");
+    
+            if (openTwitterModalButton) {
+                openTwitterModalButton.addEventListener("click", function () {
+                    var tweet = document.getElementById("tweet").value;
+
+                    // Simpan tweet di variabel pendingTweet
+                    pendingTweet = tweet;
+
+                    // Update teks pada elemen modal sebelum menampilkannya
+                    var tweetModal = document.getElementById("tweetModalContent");
+                    if (tweetModal) {
+                        tweetModal.textContent = tweet;
+                    }
+
+                    var toast = document.getElementById("liveToast");
+                    if (toast) {
+                        toast.remove(); // Menghapus toast saat modal muncul
+                    }
+                    twitterModal.show(); // Show the Twitter modal when the "Post ke Twitter" button is clicked
+                });
+            }
+
+            function getCookie(name) {
+                var cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    var cookies = document.cookie.split(';');
+                    for (var i = 0; i < cookies.length; i++) {
+                        var cookie = cookies[i].trim();
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+    
+            if (submitTwitterButton) {
+                submitTwitterButton.addEventListener("click", function () {
+                    // Get the Twitter username, password, and tweet content from the form
+                    var twitterUsername = document.getElementById("twitter_username").value;
+                    var twitterPassword = document.getElementById("twitter_password").value;
+                    var tweet = document.getElementById("twitter_value").value;                    
+
+                    // Create a FormData object to send the data as a POST request
+                    var formData = new FormData();
+                    formData.append('twitter_username', twitterUsername);
+                    formData.append('twitter_password', twitterPassword);
+                    formData.append('tweet', tweet);
+    
+                    // Send a POST request to the server
+                    fetch('/post_to_twitter/', {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-CSRFToken': getCookie('csrftoken') // Include CSRF token
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Tweet posted successfully, show a success toast
+                            showToast(data.message);
+                        } else {
+                            // Error posting tweet, show an error toast
+                            showToast(data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+    
+                    // Close the modal after posting
+                    twitterModal.hide();
+                });
+            }        
+        });
+    </script>
+
+    <script>
+        // Mendapatkan elemen dropdown dan semua elemen dropdown-item
+        var dropdown = document.getElementById('languageDropdown');
+        var dropdownItems = dropdown.getElementsByClassName('dropdown-item');
+
+        // Variabel untuk menyimpan bahasa yang dipilih oleh pengguna
+        var selectedLanguage = 'en'; // Default to English
+    
+        // Loop melalui setiap elemen dropdown-item dan tambahkan event listener
+        for (var i = 0; i < dropdownItems.length; i++) {
+            dropdownItems[i].addEventListener('click', function () {
+                // Dapatkan data-lang atribut dari elemen yang diklik
+                var lang = this.getAttribute('data-lang');
+
+                // Perbarui bahasa yang dipilih
+                selectedLanguage = lang;
+                
+                // Perbarui bahasa situs web sesuai dengan data-lang yang dipilih
+                updateLanguage(lang);
+            });
+        }
+    
+        // Fungsi untuk memperbarui bahasa situs web
+        function updateLanguage(lang) {
+            var languageText = {
+                'en': {
+                    'headingText': "This application will detect the sentiment and emotion from your tweet.\nIf your tweet contains hate speech and anger emotion,\nthe user application will detect it.",
+                    'fieldText': "<strong>Check Your Tweet Here:</strong>",
+                    'resultText': "Display Result:1) Your tweet contains hate speech and angry emotion.\n Not recommended for posting or 2) Your tweet does not contain \n hate speech and emotion. Please post your tweet.",
+                    'hasil': "<strong>Detection Result</strong>"
+                },
+                'id': {
+                    'headingText': "Aplikasi ini akan mendeteksi sentiment dan emosi dari tweet Anda.\nJika tweet Anda mengandung ujaran kebencian dan emosi,\nmaka aplikasi pengguna akan mendeteksinya.",
+                    'fieldText': "<strong>Periksa Tweet Anda Disini:</strong>",
+                    'resultText': "Tampilkan Hasil: 1) Tweet Anda mengandung ujaran kebencian dan emosi marah. \n Tidak direkomendasikan untuk di posting atau 2) Tweet Anda tidak mengandung \n ujaran kebencian dan emosi. Silahkan post tweet Anda.",
+                    'hasil': "<strong>Hasil Deteksi</strong>"
+                }
+            };
+    
+            // Get the selected language text
+            var headingText = languageText[lang]['headingText'];
+            var fieldText = languageText[lang]['fieldText'];
+            var resultText = languageText[lang]['resultText'];
+            var hasil = languageText[lang]['hasil'];
+    
+            // Update the text content of the elements
+            document.getElementById('headingText').innerHTML = headingText.replace(/\n/g, "<br>");
+            document.getElementById('fieldText').innerHTML = fieldText.replace(/\n/g, "<br>");            
+            document.getElementById('resultText').innerHTML = resultText.replace(/\n/g, "<br>");
+            document.getElementById('hasil').innerHTML = hasil.replace(/\n/g, "<br>");
+        }
+    </script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var passwordInput = document.getElementById("twitter_password");
+            var passwordIcon = document.getElementById("passwordIcon");
+            var togglePasswordButton = document.getElementById("togglePassword");
+    
+            if (passwordInput && passwordIcon && togglePasswordButton) {
+                togglePasswordButton.addEventListener("click", function () {
+                    if (passwordInput.type === "password") {
+                        passwordInput.type = "text";
+                        passwordIcon.classList.remove("fa-eye");
+                        passwordIcon.classList.add("fa-eye-slash");
+                    } else {
+                        passwordInput.type = "password";
+                        passwordIcon.classList.remove("fa-eye-slash");
+                        passwordIcon.classList.add("fa-eye");
+                    }
+                });
+            }
+        });
+    </script>
+    
+      
+    
 </body>
 </html>
