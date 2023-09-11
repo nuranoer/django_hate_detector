@@ -148,10 +148,6 @@
             <button type="submit" name="detect_emotion_sentiment" value="Detect" class="btn btn-secondary">Check</button>
         </div>
     </form>
-    <h6 class="mt-1" id="resultText">Tampilkan Hasil: 1) Tweet Anda mengandung ujaran kebencian dan emosi marah.
-        <br>Tidak direkomendasikan  untuk di posting atau 2) Tweet Anda tidak mengandung
-        <br>ujaran kebencian dan emosi. Silahkan post tweet Anda.
-    </h6>
 
     {% if detected_emotion or detected_sentiment %}
         {% if detected_sentiment == "Positive" or detected_sentiment == "Neutral" %}
@@ -173,6 +169,7 @@
                     <h5>Hasil Deteksi Sentimen:</h5>
                     <p>{{ detected_sentiment }}</p>
                     {% endif %}
+                    <p><center>"Tweet Anda tidak mengandung ujaran kebencian dan emosi. Silahkan post tweet Anda."</center></p>
                     
                     <form method="post" action="{% url 'post_to_twitter' %}">
                         {% csrf_token %}
@@ -203,6 +200,7 @@
                     <h5>Hasil Deteksi Sentimen:</h5>
                     <p>{{ detected_sentiment }}</p>
                     {% endif %}
+                    <p><center>"Tweet Anda mengandung ujaran kebencian dan emosi marah. Tidak direkomendasikan untuk di posting"</center></p>
                 </div>
             </div>
         </div>
@@ -439,13 +437,11 @@
                 'en': {
                     'headingText': "This application will detect the sentiment and emotion from your tweet.\nIf your tweet contains hate speech and anger emotion,\nthe user application will detect it.",
                     'fieldText': "<strong>Check Your Tweet Here:</strong>",
-                    'resultText': "Display Result:1) Your tweet contains hate speech and angry emotion.\n Not recommended for posting or 2) Your tweet does not contain \n hate speech and emotion. Please post your tweet.",
                     'hasil': "<strong>Detection Result</strong>"
                 },
                 'id': {
                     'headingText': "Aplikasi ini akan mendeteksi sentiment dan emosi dari tweet Anda.\nJika tweet Anda mengandung ujaran kebencian dan emosi,\nmaka aplikasi pengguna akan mendeteksinya.",
                     'fieldText': "<strong>Periksa Tweet Anda Disini:</strong>",
-                    'resultText': "Tampilkan Hasil: 1) Tweet Anda mengandung ujaran kebencian dan emosi marah. \n Tidak direkomendasikan untuk di posting atau 2) Tweet Anda tidak mengandung \n ujaran kebencian dan emosi. Silahkan post tweet Anda.",
                     'hasil': "<strong>Hasil Deteksi</strong>"
                 }
             };
@@ -453,13 +449,11 @@
             // Get the selected language text
             var headingText = languageText[lang]['headingText'];
             var fieldText = languageText[lang]['fieldText'];
-            var resultText = languageText[lang]['resultText'];
             var hasil = languageText[lang]['hasil'];
     
             // Update the text content of the elements
             document.getElementById('headingText').innerHTML = headingText.replace(/\n/g, "<br>");
             document.getElementById('fieldText').innerHTML = fieldText.replace(/\n/g, "<br>");            
-            document.getElementById('resultText').innerHTML = resultText.replace(/\n/g, "<br>");
             document.getElementById('hasil').innerHTML = hasil.replace(/\n/g, "<br>");
         }
     </script>
